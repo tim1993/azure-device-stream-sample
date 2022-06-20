@@ -1,0 +1,87 @@
+﻿@page "/"
+@using  IoTEmergency.Web.Data;
+@using Microsoft.Azure.Devices.Shared
+@inject IoTEmergencyRoomService EmergencyService;
+@inject DeviceStreamProxyService ProxyService;
+<PageTitle>Index</PageTitle>
+
+<h1>IoT Emergency Room</h1>
+<style>
+    .selected {
+        background-color: green;
+    }
+</style>
+<button disabled=@(selected is null || isLoading) @onclick="CauseTrouble">
+    @(isLoading ? "Loading...": "Cause Trouble")
+</button>
+
+<button disabled=@(selected is null || isLoading) @onclick="OpenConnection">
+    Open SSH Connection
+</button>
+
+<table>
+    <thead>
+        <tr>
+            <td>Name</td>
+            <td>Status</td>
+        </tr>
+    </thead>
+
+@if (devices is not null)
+{
+    @foreach (var twin in devices)
+    {
+        <tr class="@RowClass(twin)" @onclick="() => selected = twin">
+            <td>@twin.DeviceId</td>
+            <td>@twin.ConnectionState</td>
+        </tr>
+    }
+}
+</table>
+
+@if (selected is not null)
+    {
+        <p>Selected device: @selected.DeviceId</p>
+    }
+
+@code {
+    Twin? selected;
+    bool isLoading = false;
+
+    IEnumerable<Twin>? devices = null;
+    protected override async Task OnInitializedAsync()
+    {
+        devices = await EmergencyService.ListDevices().ToListAsync();
+    }
+
+    private async void OpenConnection()
+    {
+        if (selected is not null)
+        {
+            try
+            {
+                await ProxyService.OpenLocalProxy(22, selected.DeviceId);
+            }
+            catch {}
+
+        }
+    }
+
+    private async void CauseTrouble()
+    {
+        if (selected is not null)
+        {
+            try
+            {
+                isLoading = true;
+                var result = await EmergencyService.InvokeDiskflooding(selected.DeviceId);
+            }
+            finally
+            {
+                isLoading = false;
+            }
+        }
+    }
+
+    private string RowClass(Twin twin) => twin == selected ? "selected" : string.Empty;
+}
