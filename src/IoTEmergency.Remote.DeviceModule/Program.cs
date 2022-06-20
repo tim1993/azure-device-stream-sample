@@ -1,6 +1,7 @@
 ﻿namespace IoTEmergency.Remote.DeviceModule
 {
     using System;
+    using System.Collections;
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
@@ -36,15 +37,26 @@
         /// </summary>
         static async Task Init()
         {
-            MqttTransportSettings mqttSetting = new MqttTransportSettings(TransportType.Mqtt_Tcp_Only);
-            ITransportSettings[] settings = { mqttSetting };
+            PrintEnvironment();
+            var protocolsettings = new AmqpTransportSettings(TransportType.Amqp_Tcp_Only);
+            ITransportSettings[] settings = { protocolsettings };
 
             // Open a connection to the Edge runtime
             ModuleClient ioTHubModuleClient = await ModuleClient.CreateFromEnvironmentAsync(settings);
+
             await ioTHubModuleClient.OpenAsync();
             var deviceStreamHander = new DeviceStreamHandler(ioTHubModuleClient, "localhost", 22);
             await deviceStreamHander.WaitForConnection(CancellationToken.None);
             Console.WriteLine("IoT Hub module client initialized.");
+        }
+
+        static void PrintEnvironment()
+        {
+            var envVars = Environment.GetEnvironmentVariables();
+            foreach (DictionaryEntry env in envVars)
+            {
+                Console.WriteLine($"{env.Key}: {env.Value}");
+            }
         }
     }
 }
