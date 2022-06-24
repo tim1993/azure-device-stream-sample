@@ -1,0 +1,15 @@
+﻿.selected {
+  background-color: green;
+}
+
+img {
+  width: 100%;
+}
+
+table {
+  width: 100%;
+}
+
+p {
+  margin-top: 1rem;
+}

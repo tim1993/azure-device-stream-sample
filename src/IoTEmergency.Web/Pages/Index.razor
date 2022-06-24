@@ -5,12 +5,9 @@
 @inject DeviceStreamProxyService ProxyService;
 <PageTitle>Index</PageTitle>
 
+<img src="/img/header.jpg" />
 <h1>IoT Emergency Room</h1>
-<style>
-    .selected {
-        background-color: green;
-    }
-</style>
+
 <button disabled=@(selected is null || isLoading) @onclick="CauseTrouble">
     @(isLoading ? "Loading...": "Cause Trouble")
 </button>
