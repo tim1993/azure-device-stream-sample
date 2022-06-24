@@ -20,8 +20,8 @@ namespace IoTEmergency.Web.Data
             var query = _registryClient.CreateQuery("SELECT * FROM devices");
             while (query.HasMoreResults)
             {
-               var result = await query.GetNextAsTwinAsync();
-                foreach(var device in result)
+                var result = await query.GetNextAsTwinAsync();
+                foreach (var device in result)
                 {
                     yield return device;
                 }
@@ -32,7 +32,7 @@ namespace IoTEmergency.Web.Data
         {
             var c2dMethod = new CloudToDeviceMethod("FloodDisk", TimeSpan.FromMinutes(1));
             c2dMethod.SetPayloadJson(JsonSerializer.Serialize(new { size = fileSizeMb }));
-            
+
             var result = await _serviceClient.InvokeDeviceMethodAsync(deviceId, "rogue", c2dMethod);
             if (result.Status == 200)
             {
@@ -41,5 +41,6 @@ namespace IoTEmergency.Web.Data
 
             return false;
         }
+
     }
 }
