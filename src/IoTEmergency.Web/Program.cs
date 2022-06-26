@@ -1,6 +1,6 @@
+using Azure.Messaging.EventHubs.Consumer;
 using IoTEmergency.Web.Data;
 using Microsoft.Azure.Devices;
-using Microsoft.Azure.EventHubs;
 
 var ServiceConnectionString = File.ReadAllText(".key");
 var EventhubConnectionString = File.ReadAllText("eventhub.key");
@@ -11,10 +11,16 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<IoTEmergencyRoomService>();
 builder.Services.AddSingleton<DeviceStreamProxyService>();
+builder.Services.AddSingleton<IoTHubReceiverService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<IoTHubReceiverService>());
 
 builder.Services.AddSingleton(_ => ServiceClient.CreateFromConnectionString(ServiceConnectionString));
 builder.Services.AddSingleton(_ => RegistryManager.CreateFromConnectionString(ServiceConnectionString));
-builder.Services.AddSingleton(_ => EventHubClient.CreateFromConnectionString(EventhubConnectionString));
+builder.Services.AddSingleton(_ => new EventHubConsumerClient(EventHubConsumerClient.DefaultConsumerGroupName, EventhubConnectionString));
+
+// Configure logging
+builder.Logging.AddConsole();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -10,6 +10,8 @@ namespace IoTEmergency.Web.Data
         private readonly ServiceClient deviceClient;
         private Task? proxyTask;
         private CancellationTokenSource cts = new CancellationTokenSource();
+
+        public bool IsRunning => proxyTask is not null;
         public DeviceStreamProxyService(ServiceClient deviceClient)
         {
             this.deviceClient = deviceClient;
@@ -110,7 +112,5 @@ namespace IoTEmergency.Web.Data
             });
 
         }
-
-
     }
 }

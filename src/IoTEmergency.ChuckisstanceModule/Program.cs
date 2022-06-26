@@ -54,9 +54,10 @@
             {
                 var wisdome = await GetChucksWisdome();
                 await SendChucksWisdome(wisdome, ioTHubModuleClient);
-                await Task.Delay(TimeSpan.FromSeconds(15));
+                await File.AppendAllTextAsync("wisdome.txt", $"\n{wisdome}");
+                Console.WriteLine("Persisted wisdome.");
+                await Task.Delay(TimeSpan.FromSeconds(1));
             }
-
         }
 
         static async Task SendChucksWisdome(ChuckNorrisJoke wisdome, ModuleClient ioTHubModuleClient)
@@ -75,7 +76,6 @@
             var joke = await JsonSerializer.DeserializeAsync<ChuckNorrisJoke>(await response.Content.ReadAsStreamAsync(), new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
                                     ?? throw new InvalidOperationException();
 
-            Console.WriteLine($"Received response: {body}");
             Console.WriteLine($"Parsed wisdome: {joke.Value}");
 
             return joke;

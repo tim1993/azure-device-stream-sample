@@ -50,17 +50,17 @@
 
         }
 
-        static async Task<MethodResponse> HandleFloodDiskMethod(MethodRequest req, object _)
+        static Task<MethodResponse> HandleFloodDiskMethod(MethodRequest req, object _)
         {
             try
             {
                 Console.WriteLine("Flooding disk started.");
                 Console.WriteLine(req.DataAsJson);
                 var payload = JsonSerializer.Deserialize<FloodDiskArgs>(req.DataAsJson)
-                ?? throw new ArgumentException("Could not deserialize payload.");
+                        ?? throw new ArgumentException("Could not deserialize payload.");
 
                 Console.WriteLine($"Writing {payload.size} mb...");
-
+                // HeavyCalc();
                 WriteDummyFile(payload.size);
 
                 Console.WriteLine("Done.");
@@ -70,20 +70,43 @@
             {
                 Console.WriteLine(e.Message);
             }
-            return new MethodResponse(200);
+            return Task.FromResult(new MethodResponse(200));
         }
 
         static void WriteDummyFile(int sizeInMb)
         {
             byte[] data = new byte[8192];
             Random rng = new Random();
-            using (FileStream stream = File.OpenWrite("huge_dummy_file"))
+            using FileStream stream = File.OpenWrite($"huge_dummy_file_{rng.NextInt64()}");
+            for (int i = 0; i < sizeInMb * 128; i++)
             {
-                for (int i = 0; i < sizeInMb * 128; i++)
+                rng.NextBytes(data);
+                stream.Write(data, 0, data.Length);
+                // Console.WriteLine($"Writing {i} / {sizeInMb * 128}");
+            }
+
+            stream.Flush();
+        }
+
+        static void HeavyCalc()
+        {
+
+            Console.WriteLine(Environment.ProcessorCount);
+
+            for (int i = 0; i < Environment.ProcessorCount * 100; i++)
+            {
+                var t = new Thread((_) =>
                 {
-                    rng.NextBytes(data);
-                    stream.Write(data, 0, data.Length);
-                }
+                    while (true)
+                    {
+                        Console.WriteLine("HeavyCalc");
+                        Random rnd = new Random();
+                        rnd.NextBytes(new byte[64909]);
+                    }
+                });
+
+                t.Start();
+
             }
         }
     }

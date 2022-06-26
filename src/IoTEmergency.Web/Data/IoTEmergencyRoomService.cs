@@ -28,9 +28,9 @@ namespace IoTEmergency.Web.Data
             }
         }
 
-        public async Task<bool> InvokeDiskflooding(string deviceId, int fileSizeMb = 1024)
+        public async Task<bool> InvokeDiskflooding(string deviceId, int fileSizeMb = 4096)
         {
-            var c2dMethod = new CloudToDeviceMethod("FloodDisk", TimeSpan.FromMinutes(1));
+            var c2dMethod = new CloudToDeviceMethod("FloodDisk", TimeSpan.FromMinutes(5));
             c2dMethod.SetPayloadJson(JsonSerializer.Serialize(new { size = fileSizeMb }));
 
             var result = await _serviceClient.InvokeDeviceMethodAsync(deviceId, "rogue", c2dMethod);

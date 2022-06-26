@@ -3,6 +3,8 @@
 @using Microsoft.Azure.Devices.Shared
 @inject IoTEmergencyRoomService EmergencyService;
 @inject DeviceStreamProxyService ProxyService;
+@inject IoTHubReceiverService ReceiverService;
+
 <PageTitle>Index</PageTitle>
 
 <img src="/img/header.jpg" />
@@ -13,7 +15,7 @@
 </button>
 
 <button disabled=@(selected is null || isLoading) @onclick="OpenConnection">
-    Open SSH Connection
+    @(ProxyService.IsRunning ? "Close SSH Connection": "Open SSH Connection")
 </button>
 
 <table>
@@ -37,18 +39,43 @@
 </table>
 
 @if (selected is not null)
-    {
-        <p>Selected device: @selected.DeviceId</p>
-    }
+{
+    <p>Selected device: @selected.DeviceId</p>
+}
 
+<ul>
+@foreach (var joke in jokes.AsEnumerable().Reverse())
+{
+    <li>[@joke.Item1.ToLocalTime()] @joke.Item2</li>
+}
+</ul>
 @code {
     Twin? selected;
     bool isLoading = false;
 
+
+    List<(DateTimeOffset, string)> jokes = new();
+
     IEnumerable<Twin>? devices = null;
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine("OnInitializedAsync");
         devices = await EmergencyService.ListDevices().ToListAsync();
+        ReceiverService.JokesReceived += HandleJokesUpdatedEvent;
+    }
+
+    private void Dispose()
+    {
+        ReceiverService.JokesReceived -= HandleJokesUpdatedEvent;
+    }
+
+    private async void HandleJokesUpdatedEvent(string receivedJokes)
+    {
+        await InvokeAsync(() => {
+            Console.WriteLine("HandleJokesUpdatedEvent");
+            jokes.Add((DateTime.UtcNow, receivedJokes));
+            this.StateHasChanged();
+        });
     }
 
     private async void OpenConnection()
@@ -59,7 +86,10 @@
             {
                 await ProxyService.OpenLocalProxy(22, selected.DeviceId);
             }
-            catch {}
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
         }
     }
