@@ -41,14 +41,14 @@ namespace IoTEmergency.Web.Data
             }
         }
 
-        private static async Task HandleIncomingConnectionsAndCreateStreams(string deviceId, ServiceClient serviceClient, NetworkStream tcpClient)
+        private static async Task HandleIncomingConnectionsAndCreateStreams(string deviceId, ServiceClient serviceClient, NetworkStream tcpClient, CancellationToken cancellationToken = default)
         {
             DeviceStreamRequest deviceStreamRequest = new DeviceStreamRequest(
                 streamName: "TestStream"
             );
 
 
-            DeviceStreamResponse result = await serviceClient.CreateStreamAsync(deviceId, deviceStreamRequest, CancellationToken.None).ConfigureAwait(false);
+            DeviceStreamResponse result = await serviceClient.CreateStreamAsync(deviceId, deviceStreamRequest, cancellationToken).ConfigureAwait(false);
 
             Console.WriteLine($"Stream response received: Name={deviceStreamRequest.StreamName} IsAccepted={result.IsAccepted}");
 
@@ -56,14 +56,13 @@ namespace IoTEmergency.Web.Data
             {
                 try
                 {
-                    var cancellationTokenSource = new CancellationTokenSource();
-                    using (var remoteStream = await GetStreamingClientAsync(result.Uri, result.AuthorizationToken, cancellationTokenSource.Token).ConfigureAwait(false))
+                    using (var remoteStream = await GetStreamingClientAsync(result.Uri, result.AuthorizationToken, cancellationToken).ConfigureAwait(false))
                     {
                         Console.WriteLine("Starting streaming");
 
                         await Task.WhenAny(
-                            HandleIncomingDataAsync(tcpClient, remoteStream, cancellationTokenSource.Token),
-                            HandleOutgoingDataAsync(tcpClient, remoteStream, cancellationTokenSource.Token)).ConfigureAwait(false);
+                            HandleIncomingDataAsync(tcpClient, remoteStream, cancellationToken),
+                            HandleOutgoingDataAsync(tcpClient, remoteStream, cancellationToken)).ConfigureAwait(false);
                     }
 
                     Console.WriteLine("Done streaming");
@@ -110,7 +109,7 @@ namespace IoTEmergency.Web.Data
 
                 tcpListener.Stop();
             });
-
         }
+
     }
 }

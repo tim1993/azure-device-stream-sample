@@ -14,7 +14,7 @@
     @(isLoading ? "Loading...": "Cause Trouble")
 </button>
 
-<button disabled=@(selected is null || isLoading) @onclick="OpenConnection">
+<button disabled=@(selected is null || isLoading) @onclick="ToggleConnection">
     @(ProxyService.IsRunning ? "Close SSH Connection": "Open SSH Connection")
 </button>
 
@@ -78,7 +78,7 @@
         });
     }
 
-    private async void OpenConnection()
+    private async void ToggleConnection()
     {
         if (selected is not null)
         {
@@ -90,7 +90,6 @@
             {
                 Console.WriteLine(e.Message);
             }
-
         }
     }
 

@@ -12,10 +12,10 @@ var iothubConnectionString = config["Device:ConnectionString"] ?? throw new Inva
 
 var deviceClient = DeviceClient.CreateFromConnectionString(iothubConnectionString);
 await deviceClient.OpenAsync();
-await deviceClient.SetMethodDefaultHandlerAsync(async (req, ctx) =>
+await deviceClient.SetMethodDefaultHandlerAsync((req, ctx) =>
 {
     Console.WriteLine($"Method call: {req.Name}");
-    return new MethodResponse(200);
+    return Task.FromResult(new MethodResponse(200));
 }, null);
 while (true)
 {
